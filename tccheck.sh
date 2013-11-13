@@ -7,13 +7,17 @@
 #: :year: 2013
 #:
 
-#: Fundamental size checks - truecrypt drives are > 20 MB and have a file 
-#: size divisible by 512.
-sizecheck() 
+#: Simple checks - TrueCrypt containers:
+#: - have no known file headers
+#: - are > 5 MB 
+#: - have a file size divisible by 512.
+basicchecks() 
 {
     size=$(du -b $1 | awk '{print $1}')
 
-    if [[ $(expr $size \> $(expr 5 \* 1024 \* 1024)) == '0' || $(expr $size % 512) > 0 ]]; then
+    if [[ $(expr $size \> $(expr 5 \* 1024 \* 1024)) == '0' \
+                            || $(expr $size % 512) > 0 \
+                            || $(file $1 | awk '{print $2}') != 'data' ]]; then
         echo 0
         return
     fi
@@ -31,9 +35,9 @@ chicheck()
 #: Run all tests on the file
 tests()
 {
-    size=$(sizecheck $1)
+    basic=$(basicchecks $1)
     chi=$(chicheck $1)
-    if [[ $size == '0' && $chi == '0' ]]; then
+    if [[ $basic == '0' && $chi == '0' ]]; then
         echo "0"
     else
         echo "1"
@@ -87,14 +91,14 @@ else
     SAVEIFS=$IFS
     IFS=$(echo -en "\n\b")
     for i in $(ls -A $filename); do
-        if [[ -f "$i" ]]; then
-            testval=$(tests "$i")
+        if [[ -f $i ]]; then
+            testval=$(tests $i)
             if [[ $vflag == 1 ]]; then
                 echo "$i: $testval"
             else
                 if [[ $testval == 1 ]]; then
                     if [[ $rflag == 1 ]]; then
-                        echo "$i"
+                        echo $i
                     else
                         echo 1
                     fi
@@ -103,7 +107,7 @@ else
         fi
         
         if [[ -d $filename ]]; then
-            ./$0 -$args $filename/"$i"
+            ./$0 -$args $filename/$i
         fi
     done
     IFS=$SAVEIFS
