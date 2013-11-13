@@ -1,5 +1,5 @@
 #!/bin/sh
-#: tccheck v1.0
+#: tccheck v0.1
 #: ~~~~~~~~~~~~~~
 #: Command-line utility to test for potential TrueCrypt containers
 #:
@@ -13,7 +13,7 @@ sizecheck()
 {
     size=$(du -b $1 | awk '{print $1}')
 
-    if [[ $(expr $size \> $(expr 20 \* 1024 \* 1024)) == '0' || $(expr $size % 512) > 0 ]]; then
+    if [[ $(expr $size \> $(expr 5 \* 1024 \* 1024)) == '0' || $(expr $size % 512) > 0 ]]; then
         echo 0
         return
     fi
